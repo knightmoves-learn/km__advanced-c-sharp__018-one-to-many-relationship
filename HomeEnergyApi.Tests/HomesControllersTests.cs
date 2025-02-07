@@ -11,6 +11,7 @@ public class HomesControllersTests
     private readonly WebApplicationFactory<Program> _factory;
     private Home testHome1 = new Home("Test1", "123 Test St.", "Test City");
     private dynamic testUsage = new ExpandoObject();
+    private dynamic testUtilProv = new ExpandoObject();
 
 
     public HomesControllersTests(WebApplicationFactory<Program> factory)
@@ -56,7 +57,8 @@ public class HomesControllersTests
     {
         var client = _factory.CreateClient();
 
-        string strTestHome = BuildTestHome(testHome1, testUsage, 123);
+        string stringtestt = JsonSerializer.Serialize(testHome1);
+        string strTestHome = BuildTestHome(testHome1, testUsage, 123, testUtilProv, new List<string> { "Gas", "Electric" });
         string strUsage = JsonSerializer.Serialize(testUsage);
 
         HttpRequestMessage sendRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -74,17 +76,24 @@ public class HomesControllersTests
         bool nameMatch = responseContent.Contains("\"ownerlastname\":\"test1\"");
 
         string usageResponse = responseContent.Substring(responseContent.IndexOf("homeusagedata\":{"));
-        bool hasAllProps = usageResponse.Contains("\"id\":") && usageResponse.Contains("monthlyelectricusage\":") && usageResponse.Contains("hassolar\":") && usageResponse.Contains("homeid\":");
+        usageResponse = usageResponse[0..Math.Min(usageResponse.Length - 1, usageResponse.IndexOf("utilityproviders"))];
+        bool usageHasAllProps = usageResponse.Contains("\"id\":") && usageResponse.Contains("monthlyelectricusage\":") && usageResponse.Contains("hassolar\":") && usageResponse.Contains("homeid\":");
         bool electricMatch = usageResponse.Contains("\"monthlyelectricusage\":123");
 
+        string utilProvResponse = responseContent.Substring(responseContent.IndexOf("utilityproviders"));
+        bool utilHasAllProps = utilProvResponse.Contains("\"id\":") && utilProvResponse.Contains("\"providedutilities\":") && usageResponse.Contains("\"homeid\":");
+        bool providedUtilitiesMatch = utilProvResponse.Contains("\"ProvidedUtilities\":[\"Gas\",\"Electric\"]");
 
         Assert.True(nameMatch,
             $"On returning the added home through POST HomeEnergyApi did not return the expected home with `ownerLastName` of `test1`; \n Received : {responseContent}");
-        Assert.True(hasAllProps,
+        Assert.True(usageHasAllProps,
             $"On returning the added home through POST HomeEnergyApi did not return a home where `HomeUsageData` had all the expected properties(Id, MonthlyElectricUsage, HasSolar, HomeId); Received : {responseContent}");
         Assert.True(electricMatch,
             $"On returning the added home through POST HomeEnergyApi did not return a home where `HomeUsageData.MonthlyElectricUsage` had the expected value of `123`; Received : {responseContent}");
-
+        Assert.True(utilHasAllProps,
+            $"On returning the added home through POST HomeEnergyApi did not return a home where `UtilityProviders` has all the expected properties; \n Received : {responseContent}");
+        Assert.True(utilHasAllProps,
+            $"On returning the added home through POST HomeEnergyApi did not return a home where `UtilityProviders.ProvidedUtilities` has the expected values of `Gas` and `Electric`; \n Received : {responseContent}");
     }
 
     [Theory, TestPriority(4)]
@@ -101,18 +110,24 @@ public class HomesControllersTests
             $"HomeEnergyApi did not return Homes with `HomeUsageData` properties on GET at {url}");
     }
 
-    public static string BuildTestHome(Home home, dynamic homeUsage, int electricValue)
+    public static string BuildTestHome(Home home, dynamic homeUsage, int electricValue, dynamic utilProv, List<string> provUtils)
     {
         dynamic testUsage = homeUsage;
         testUsage.MonthlyElectricUsage = electricValue;
         testUsage.HasSolar = true;
 
+        dynamic testUtilProv = utilProv;
+        testUtilProv.ProvidedUtilities = provUtils;
+
         Home testHome = home;
         string strTestHome = JsonSerializer.Serialize(testHome);
 
         string strUsage = JsonSerializer.Serialize(testUsage);
+        string result = strTestHome.Replace("\"HomeUsageData\":null", $"\"HomeUsageData\":{strUsage}");
 
-        string result = strTestHome.Replace("null", strUsage);
+        string strUtilProv = JsonSerializer.Serialize(testUtilProv).Replace("{", "").Replace("}", "");
+        result = result.Replace("\"UtilityProviders\":null", $"\"UtilityProviders\":[{{{strUtilProv}}}]");
+
         return result;
     }
 }

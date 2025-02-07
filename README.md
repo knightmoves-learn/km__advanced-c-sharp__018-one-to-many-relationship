@@ -6,35 +6,37 @@
 
 ## Instructions
 
-In `HomeEnergyApi/Models/HomeUsageData.cs`
-- Create a public class `HomeUsageData`
+In `HomeEnergyApi/Models/UtilityProvider.cs`
+- Create a public class `UtilityProvider`
     - Give `HomeUsageData` the following public properties / types
         - Id / int
-        - Monthly Electric Usage / int
-        - HasSolar / bool
+        - ProvidedUtilities / `List<string>`
         - HomeId / int
         - Home / Home?
             - Add the `JsonIgnore` attribute to Home.
-            - Add `= null!` to make Home non-nullable. (see 'null-forgiving' link in Resources)
+            - Add `= null!` to make Home non-nullable.
     - Ensure all properties have getters/setters
 
 In `HomeEnergyApi/Models/HomeModel.cs`
-- On `Home` create a public property `HomeUsageData` of type `HomeUsageData?`
+- On `Home` create a public property `UtilityProviders` of type `ICollection<UtilityProvider>`
     - Ensure this property has getter/setter
 
 In `HomeEnergyApi/Models/HomeDbContext.cs`
-- On `HomeDbContext` create a public property `HomeUsageDatas` of type `DbSet<HomeUsageData>`
+- On `HomeDbContext` create a public property `UtilityProviders` of type `DbSet<UtilityProviders>`
 
 In `HomeEnergyApi/Models/HomeRepository.cs`
 - Modify `HomeRepository.Save()` so that...
-    - If `home.HomeUsageData` is null,
-    - A `HomeUsageData` is added to `context.HomeUsageDatas`,
-    - With it's `Home` property set to `home`
+    - If `home.UtilityProviders` is not null,
+    - The `UtilityProvider` is added to `context.UtilityProviders`
+    - The `UtilityProvider`'s `Home` property is set to `home`
+    - For each `UtilityProvider` in `home.UtilityProviders`
+- Modify `HomeRepository.FindAll()`
+- Entities existing in UtilityProviders are returned along with those existing in Homes and HomeUsageDatas
 
 In your terminal
 - ONLY IF you are working on codespaces or a different computer/environment as the previous lesson and don't have `dotnet-ef` installed globally, run `dotnet tool install --global dotnet-ef`, otherwise skip this step
     - To check if you have `dotnet-ef` installed, run `dotnet-ef --version`
-- Run `dotnet ef migrations add AddHomeUsageDataTable`
+- Run `dotnet ef migrations add AddUtilityProvidersTable`
 - Run `dotnet ef database update`
     
 ## Additional Information
@@ -49,9 +51,6 @@ In your terminal
 - Modify an existing program to add additional functionality and discuss intended and unintended implications (e.g., breaking other functionality) (3B-AP-22) https://www.csteachers.org/page/standards
 
 ## Resources
-- https://learn.microsoft.com/en-us/ef/core/modeling/relationships/one-to-one
-- https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/ignore-properties
-- https://en.wikipedia.org/wiki/Serialization
-- https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-forgiving
+- https://learn.microsoft.com/en-us/ef/core/modeling/relationships/one-to-many
 
 Copyright &copy; 2025 Knight Moves. All Rights Reserved.

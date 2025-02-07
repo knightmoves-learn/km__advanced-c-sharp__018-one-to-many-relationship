@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HomeEnergyApi.Models
 {
-    public class HomeRepository: IReadRepository<int, Home>, IWriteRepository<int, Home>
+    public class HomeRepository : IReadRepository<int, Home>, IWriteRepository<int, Home>
     {
         private HomeDbContext context;
 
@@ -13,13 +13,22 @@ namespace HomeEnergyApi.Models
 
         public Home Save(Home home)
         {
-            if(home.HomeUsageData != null)
+            if (home.HomeUsageData != null)
             {
                 var usageData = home.HomeUsageData;
                 usageData.Home = home;
                 context.HomeUsageDatas.Add(usageData);
             }
-            
+
+            if (home.UtilityProviders != null)
+            {
+                foreach (var utilProv in home.UtilityProviders)
+                {
+                    utilProv.Home = home;
+                    context.UtilityProviders.Add(utilProv);
+                }
+            }
+
             context.Homes.Add(home);
             context.SaveChanges();
             return home;
@@ -37,6 +46,7 @@ namespace HomeEnergyApi.Models
         {
             return context.Homes
             .Include(h => h.HomeUsageData)
+            .Include(h => h.UtilityProviders)
             .ToList();
         }
 
