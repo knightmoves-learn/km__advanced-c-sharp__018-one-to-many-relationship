@@ -22,5 +22,7 @@ namespace HomeEnergyApi.Models
             StreetAddress = streetAddress;
             City = city;
         }
+
+        public ICollection<UtilityProvider> UtilityProviders { get; set; }
     }
 }
