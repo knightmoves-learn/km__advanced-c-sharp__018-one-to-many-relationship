@@ -61,26 +61,6 @@ namespace HomeEnergyApi.Migrations
                     b.ToTable("HomeUsageDatas");
                 });
 
-            modelBuilder.Entity("HomeEnergyApi.Models.UtilityProvider", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("HomeId")
-                        .HasColumnType("INTEGER");
-
-                    b.PrimitiveCollection<string>("ProvidedUtilities")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HomeId");
-
-                    b.ToTable("UtilityProviders");
-                });
-
             modelBuilder.Entity("HomeEnergyApi.Models.HomeUsageData", b =>
                 {
                     b.HasOne("HomeEnergyApi.Models.Home", "Home")
@@ -92,22 +72,9 @@ namespace HomeEnergyApi.Migrations
                     b.Navigation("Home");
                 });
 
-            modelBuilder.Entity("HomeEnergyApi.Models.UtilityProvider", b =>
-                {
-                    b.HasOne("HomeEnergyApi.Models.Home", "Home")
-                        .WithMany("UtilityProviders")
-                        .HasForeignKey("HomeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Home");
-                });
-
             modelBuilder.Entity("HomeEnergyApi.Models.Home", b =>
                 {
                     b.Navigation("HomeUsageData");
-
-                    b.Navigation("UtilityProviders");
                 });
 #pragma warning restore 612, 618
         }

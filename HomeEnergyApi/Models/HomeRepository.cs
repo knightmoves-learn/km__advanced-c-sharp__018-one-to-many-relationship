@@ -20,15 +20,6 @@ namespace HomeEnergyApi.Models
                 context.HomeUsageDatas.Add(usageData);
             }
 
-            if (home.UtilityProviders != null)
-            {
-                foreach (var utilProv in home.UtilityProviders)
-                {
-                    utilProv.Home = home;
-                    context.UtilityProviders.Add(utilProv);
-                }
-            }
-
             context.Homes.Add(home);
             context.SaveChanges();
             return home;
@@ -46,7 +37,6 @@ namespace HomeEnergyApi.Models
         {
             return context.Homes
             .Include(h => h.HomeUsageData)
-            .Include(h => h.UtilityProviders)
             .ToList();
         }
 
